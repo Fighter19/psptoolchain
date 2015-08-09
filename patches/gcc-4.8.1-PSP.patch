@@ -758,13 +758,13 @@ diff -Nbaur gcc-4.8.1/gcc/config/mips/t-allegrex gcc-4.8.1-psp/gcc/config/mips/t
 +CRTSTUFF_T_CFLAGS = -G 0
 +
 +# Assemble startup files.
-+$(T)crti.o: $(srcdir)/config/mips/crti.asm $(GCC_PASSES)
++$(T)crti.o: $(srcdir)/../libgcc/config/mips/crti.S $(GCC_PASSES)
 +	$(GCC_FOR_TARGET) $(GCC_CFLAGS) $(MULTILIB_CFLAGS) $(INCLUDES) \
-+	-c -o $(T)crti.o -x assembler-with-cpp $(srcdir)/config/mips/crti.asm
++	-c -o $(T)crti.o -x assembler-with-cpp $(srcdir)/../libgcc/config/mips/crti.S
 +
-+$(T)crtn.o: $(srcdir)/config/mips/crtn.asm $(GCC_PASSES)
++$(T)crtn.o: $(srcdir)/../libgcc/config/mips/crtn.S $(GCC_PASSES)
 +	$(GCC_FOR_TARGET) $(GCC_CFLAGS) $(MULTILIB_CFLAGS) $(INCLUDES) \
-+	-c -o $(T)crtn.o -x assembler-with-cpp $(srcdir)/config/mips/crtn.asm
++	-c -o $(T)crtn.o -x assembler-with-cpp $(srcdir)/../libgcc/config/mips/crtn.S
 +
 +# We must build libgcc2.a with -G 0, in case the user wants to link
 +# without the $gp register.
@@ -777,62 +777,6 @@ diff -Nbaur gcc-4.8.1/gcc/config/mips/t-allegrex gcc-4.8.1-psp/gcc/config/mips/t
 +
 +LIBGCC = stmp-multilib
 +INSTALL_LIBGCC = install-multilib
-diff -Nbaur gcc-4.8.1/gcc/config/mips/crti.asm gcc-4.8.1-psp/gcc/config/mips/crti.asm
---- gcc-4.8.1/gcc/config/mips/crti.asm	1969-12-31 19:00:00.000000000 -0500
-+++ gcc-4.8.1-psp/gcc/config/mips/crti.asm	2014-06-09 18:54:13.025936018 -0400
-@@ -0,0 +1,23 @@
-+	.section .init,"ax",@progbits
-+	.globl	_init
-+	.type	_init,@function
-+_init:
-+#ifdef __mips64
-+	daddu   $sp,$sp,-48
-+	sd      $31,40($sp)
-+#else
-+	addu	$sp,$sp,-32
-+	sw	$31,20($sp)
-+#endif
-+
-+	.section .fini,"ax",@progbits
-+	.globl	_fini
-+	.type	_fini,@function
-+_fini:
-+#ifdef __mips64
-+	daddu   $sp,$sp,-48
-+	sd      $31,40($sp)
-+#else
-+	addu	$sp,$sp,-32
-+	sw	$31,20($sp)
-+#endif
-diff -Nbaur gcc-4.8.1/gcc/config/mips/crtn.asm gcc-4.8.1-psp/gcc/config/mips/crtn.asm
---- gcc-4.8.1/gcc/config/mips/crtn.asm	1969-12-31 19:00:00.000000000 -0500
-+++ gcc-4.8.1-psp/gcc/config/mips/crtn.asm	2014-06-09 18:54:13.025936018 -0400
-@@ -0,0 +1,25 @@
-+#ifdef	__mips16
-+#define RA $7
-+#else
-+#define RA $31
-+#endif
-+
-+	.section .init,"ax",@progbits
-+#ifdef __mips64
-+	ld      RA,40($sp)
-+	daddu	$sp,$sp,48
-+#else
-+	lw	RA,20($sp)
-+	addu	$sp,$sp,32
-+#endif
-+	j	RA
-+
-+	.section .fini,"ax",@progbits
-+#ifdef	__mips64
-+	ld	RA,40($sp)
-+	daddu	$sp,$sp,48
-+#else
-+	lw	RA,20($sp)
-+	addu	$sp,$sp,32
-+#endif
-+	j	RA
 diff -Nbaur gcc-4.8.1/gcc/config.gcc gcc-4.8.1-psp/gcc/config.gcc
 --- gcc-4.8.1/gcc/config.gcc	2013-03-06 12:40:07.000000000 -0500
 +++ gcc-4.8.1-psp/gcc/config.gcc	2014-06-09 18:54:13.025936018 -0400
